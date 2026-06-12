@@ -4,7 +4,7 @@
 
 # Morgen MCP
 
-![Morgen MCP](https://raw.githubusercontent.com/lorecraft-io/morgen-mcp/main/morgenmcp.png)
+![Morgen MCP](https://raw.githubusercontent.com/fidgetcoding/morgen-mcp/main/morgenmcp.png)
 
 **Natural-language calendar and task control for Morgen in Claude Code.**
 
@@ -54,7 +54,7 @@ I (Nate) was on Motion before I switched. Three reasons the move stuck:
 - **Better product.** Morgen unifies calendars and tasks in one auto-scheduling surface, and the UI is cleaner. The auto-scheduler is genuinely opinionated in the right places.
 - **Better API.** The Morgen public API is well-designed enough to actually wrap — one API key, no browser-storage refresh tokens, no Firebase. That's why this MCP exists and feels thin.
 
-If you're on Motion, I also keep [motion-mcp](https://github.com/lorecraft-io/motion-mcp) up — low-maintenance but still functional. But the honest pitch: try Morgen.
+If you're on Motion, I also keep [motion-mcp](https://github.com/fidgetcoding/motion-mcp) up — low-maintenance but still functional. But the honest pitch: try Morgen.
 
 <p align="right"><a href="#top">↑ back to top</a></p>
 
@@ -362,7 +362,7 @@ Morgen keys don't expire on a fixed clock, but they do invalidate if the key is 
 
 ```bash
 # Clone the repo
-git clone https://github.com/lorecraft-io/morgen-mcp.git
+git clone https://github.com/fidgetcoding/morgen-mcp.git
 cd morgen-mcp
 
 # Install dependencies
@@ -396,11 +396,11 @@ Morgen has cleared that bar from day one. The public API is documented like they
 
 ## One more thing
 
-If morgen-mcp tames your calendar, the next thing you probably want to tame is your tasks. I built [**task-maxxing**](https://github.com/lorecraft-io/task-maxxing) for exactly that — a public, DIY, two-way sync between Obsidian Tasks and Morgen, orchestrated via n8n (Notion was dropped 2026-05-04). One source of truth for every task-shaped thought. Create it in Obsidian, complete it in Morgen, both stay in sync.
+If morgen-mcp tames your calendar, the next thing you probably want to tame is your tasks. I built [**task-maxxing**](https://github.com/fidgetcoding/task-maxxing) for exactly that — a public, DIY, two-way sync between Obsidian Tasks and Morgen, orchestrated via n8n (Notion was dropped 2026-05-04). One source of truth for every task-shaped thought. Create it in Obsidian, complete it in Morgen, both stay in sync.
 
 It genuinely helped my ADHD. Having a single reliable home for every loose end — and knowing nothing falls through the cracks between three apps — was a real quality-of-life unlock. If that pattern might help yours too, the repo is open-source and the setup is documented step by step.
 
-→ [github.com/lorecraft-io/task-maxxing](https://github.com/lorecraft-io/task-maxxing)
+→ [github.com/fidgetcoding/task-maxxing](https://github.com/fidgetcoding/task-maxxing)
 
 <p align="right"><a href="#top">↑ back to top</a></p>
 
@@ -408,7 +408,7 @@ It genuinely helped my ADHD. Having a single reliable home for every loose end �
 
 > **Actively maintained.** This is the MCP I use every day and the one I'm building on. If Morgen's API surface grows, this repo grows with it. Bug reports get real attention, features get shipped, and the roadmap tracks what Morgen themselves are working on.
 
-The counterpart repo is **[motion-mcp](https://github.com/lorecraft-io/motion-mcp)** — same philosophy, different calendar. It's in low-maintenance mode now that I've moved to Morgen, but it still works for anyone who's on Motion and wants agentic calendar access. If you're evaluating both, this repo is the one getting active care.
+The counterpart repo is **[motion-mcp](https://github.com/fidgetcoding/motion-mcp)** — same philosophy, different calendar. It's in low-maintenance mode now that I've moved to Morgen, but it still works for anyone who's on Motion and wants agentic calendar access. If you're evaluating both, this repo is the one getting active care.
 
 <p align="right"><a href="#top">↑ back to top</a></p>
 
@@ -420,7 +420,7 @@ MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
-Built by [Nate Davidovich / Lorecraft](https://github.com/lorecraft-io)
+Built by [Nate Davidovich / Lorecraft](https://github.com/fidgetcoding)
 
 [⤴ back to top](#top)
 

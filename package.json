@@ -41,9 +41,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lorecraft-io/morgen-mcp.git"
+    "url": "git+https://github.com/fidgetcoding/morgen-mcp.git"
   },
-  "homepage": "https://github.com/lorecraft-io/morgen-mcp#readme",
+  "homepage": "https://github.com/fidgetcoding/morgen-mcp#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
     "chrono-node": "^2.9.0",
@@ -59,6 +59,6 @@
     "@rolldown/binding-darwin-x64": "1.0.0-rc.15"
   },
   "bugs": {
-    "url": "https://github.com/lorecraft-io/morgen-mcp/issues"
+    "url": "https://github.com/fidgetcoding/morgen-mcp/issues"
   }
 }
