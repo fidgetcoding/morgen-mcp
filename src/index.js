@@ -13,7 +13,9 @@ import { readFileSync } from "fs";
 // Load .env from repo root
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ENV_PATH = process.env.DOTENV_CONFIG_PATH || resolve(__dirname, "../.env");
-config({ path: ENV_PATH });
+// quiet: dotenv >= 17 prints an "injected env" tip line to STDOUT by default.
+// Stdout is the MCP JSON-RPC channel — any non-JSON line corrupts the stream.
+config({ path: ENV_PATH, quiet: true });
 
 // Read version from package.json so it never drifts from the published release
 const PKG = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf8"));

@@ -222,6 +222,8 @@ claude mcp add morgen --env MORGEN_API_KEY=your_key_here -- npx -y fidgetcoding-
 
 Then restart Claude Code and start talking to your calendar.
 
+Requires Node.js 20 or newer (matches `engines` in `package.json`) — works the same on macOS and Linux.
+
 <p align="right"><a href="#top">↑ back to top</a></p>
 
 ## Setup
@@ -282,6 +284,7 @@ That is the whole setup. No token refresh cycles, no IndexedDB spelunking.
 |---|---|---|
 | `MORGEN_API_KEY` | Yes | Your Morgen API key from [platform.morgen.so/developers-api](https://platform.morgen.so/developers-api) |
 | `MORGEN_TIMEZONE` | No | IANA timezone for calendar operations (default: `America/New_York`). Used for formatting event times and task due dates. |
+| `MORGEN_SELF_EMAIL` | No | Your own email address — used by `rsvp_event` to key your RSVP into the participants map. Only needed if it can't be inferred from the calendar name (most Google calendars are named after the account email). |
 
 <p align="right"><a href="#top">↑ back to top</a></p>
 

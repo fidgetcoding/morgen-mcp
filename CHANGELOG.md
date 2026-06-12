@@ -4,12 +4,16 @@ All notable changes to `fidgetcoding-morgen-mcp` are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> **Note on package name:** This package was originally published as `morgen-mcp` on npm. Renamed to `fidgetcoding-morgen-mcp` on 2026-04-18 under the FidgetCoding brand umbrella. The old `morgen-mcp` package is deprecated with a redirect message. The GitHub repo name (`lorecraft-io/morgen-mcp`) is unchanged.
+> **Note on package name:** This package was originally published as `morgen-mcp` on npm. Renamed to `fidgetcoding-morgen-mcp` on 2026-04-18 under the FidgetCoding brand umbrella. The old `morgen-mcp` package is deprecated with a redirect message. The GitHub owner account has since been renamed — the canonical URL today is `github.com/fidgetcoding/morgen-mcp` (old `lorecraft-io/morgen-mcp` URLs 301-redirect).
 
 ## [Unreleased]
 
+### Fixed
+- MCP stdio stream corruption: dotenv 17 prints an "injected env" tip line to stdout by default, which lands ahead of the JSON-RPC stream. Suppressed with `quiet: true` in `src/index.js`.
+
 ### Added
 - README: social-links badge strip (X · LinkedIn · YouTube · Instagram, ruvnet-style for-the-badge) inserted into the centered header block beneath the project metadata badges.
+- README: documented the optional `MORGEN_SELF_EMAIL` env var (used by `rsvp_event` self-identification) and the Node.js 20+ requirement.
 
 ### Changed
 - README: banner filename switched from `morgen-mcp.png` to `morgenmcp.png` to match the sibling-repo brand-kit convention (`motionmcp.png`, `taskmaxxing.png`, etc.). The old asset is kept in-tree for now; the README now points at `morgenmcp.png` via the absolute `raw.githubusercontent.com` URL so it still renders on npmjs.com.
