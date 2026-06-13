@@ -9,6 +9,7 @@ import { config } from "dotenv";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
+import { spawnSync } from "node:child_process";
 
 // Load .env from repo root
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -19,6 +20,20 @@ config({ path: ENV_PATH, quiet: true });
 
 // Read version from package.json so it never drifts from the published release
 const PKG = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf8"));
+
+// Setup dispatch — must run BEFORE the env-var check below, otherwise the
+// documented "npx fidgetcoding-morgen-mcp setup" command dies on the very
+// missing key it exists to create. The wizard runs in a child process with
+// inherited stdio (it's interactive); setup.js is fire-and-forget async, so
+// an in-process import would race the exit below.
+if (process.argv[2] === "setup") {
+  const { status } = spawnSync(
+    process.execPath,
+    [resolve(__dirname, "../bin/setup.js")],
+    { stdio: "inherit" }
+  );
+  process.exit(status ?? 0);
+}
 
 // Startup validation
 if (!process.env.MORGEN_API_KEY) {
