@@ -1,6 +1,7 @@
 node_modules/
 .env
-.env.local
+.env.*
+!.env.example
 *.log
 .DS_Store
 coverage/
@@ -16,3 +17,4 @@ coverage/
 morgen-mcp.md
 *.pem
 *.key
+*.cert
