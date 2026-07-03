@@ -53,7 +53,7 @@
     "vitest": "4.1.2"
   },
   "optionalDependencies": {
-    "@rolldown/binding-linux-x64-gnu": "1.0.0-rc.15",
+    "@rolldown/binding-linux-x64-gnu": "1.0.0-rc.17",
     "@rolldown/binding-linux-arm64-gnu": "1.0.0-rc.15",
     "@rolldown/binding-darwin-arm64": "1.0.0-rc.15",
     "@rolldown/binding-darwin-x64": "1.0.0-rc.15"
