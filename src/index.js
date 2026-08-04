@@ -49,18 +49,21 @@ import { EVENT_TOOLS, eventHandlers } from "./tools-events.js";
 import { TASK_TOOLS, taskHandlers } from "./tools-tasks.js";
 import { REFLOW_TOOLS, reflowHandlers } from "./tools-reflow.js";
 import { CONVERSION_TOOLS, conversionHandlers } from "./tools-conversions.js";
+import { AVAILABILITY_TOOLS, availabilityHandlers } from "./tools-availability.js";
 
 const TOOLS = [
   ...EVENT_TOOLS,
   ...TASK_TOOLS,
   ...REFLOW_TOOLS,
   ...CONVERSION_TOOLS,
+  ...AVAILABILITY_TOOLS,
 ];
 const HANDLERS = {
   ...eventHandlers,
   ...taskHandlers,
   ...reflowHandlers,
   ...conversionHandlers,
+  ...availabilityHandlers,
 };
 
 // Server setup

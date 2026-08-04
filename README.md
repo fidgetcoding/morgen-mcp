@@ -145,6 +145,12 @@ The MCP stays a thin layer: one `fetch` per Morgen endpoint, local rate-limit bo
 |---|---|
 | `reflow_day` | Compress a day's events back-to-back starting from an anchor time. Defaults to `dry_run: true`. Auto-filters to solo blocks (no external participants) so real meetings never move. Pass `event_ids` to reflow an explicit set, or let the tool auto-detect solo blocks on the target calendar. Capped at 50 `event_ids` per call for rate-limit safety. On partial failure (mid-loop `update_event` errors), throws a structured error with `applied_steps` + `pending_steps` so you can recover manually. |
 
+### Availability Tools
+
+| Tool | Description |
+|---|---|
+| `find_free_slots` | Find the open gaps, not the bookings. Checks **every** connected calendar at once — a window is only reported free if nothing anywhere fills it — and returns slots of at least `min_duration_minutes` inside working hours. Takes zero required arguments, so "when am I free today?" works bare; `start_date`/`end_date` accept natural language ("next Monday") and the range caps at 31 days. Working hours (`work_start_hour`/`work_end_hour`), weekend inclusion, and a `calendar_ids` allowlist are all optional. One API call per connected account, not per calendar, to stay inside the rate budget. |
+
 ### Conversion Tools
 
 | Tool | Description |

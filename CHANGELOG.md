@@ -12,6 +12,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 - MCP stdio stream corruption: dotenv 17 prints an "injected env" tip line to stdout by default, which lands ahead of the JSON-RPC stream. Suppressed with `quiet: true` in `src/index.js`.
 
 ### Added
+- `find_free_slots` (`src/tools-availability.js`) — returns open windows rather than bookings. Unions busy time across every connected calendar so a slot is only free when nothing anywhere fills it, honours configurable working hours and a minimum duration, accepts natural-language dates, and caps the range at 31 days. Fetches one `events/list` per account rather than per calendar to stay inside Morgen's 100-point / 15-minute budget. All-day entries are excluded from busy time — they label a day rather than occupying it. 28 new tests.
 - README: social-links badge strip (X · LinkedIn · YouTube · Instagram, ruvnet-style for-the-badge) inserted into the centered header block beneath the project metadata badges.
 - README: documented the optional `MORGEN_SELF_EMAIL` env var (used by `rsvp_event` self-identification) and the Node.js 20+ requirement.
 
@@ -19,6 +20,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 - README: banner filename switched from `morgen-mcp.png` to `morgenmcp.png` to match the sibling-repo brand-kit convention (`motionmcp.png`, `taskmaxxing.png`, etc.). The old asset is kept in-tree for now; the README now points at `morgenmcp.png` via the absolute `raw.githubusercontent.com` URL so it still renders on npmjs.com.
 - README: added a "back to top" anchor button at section boundaries (dd6a607).
 - Git history rewrite: `git filter-repo` collapsed all author/committer identities (dependabot[bot], lorecraft-io, fidgetcoding, nate variants) into a single `Nate Davidovich <nate@lorecraft.io>` identity across `main` and all release tags. All `Co-authored-by:` trailers stripped. Tag commit hashes for v0.1.10 / v0.1.12 / v0.1.13 / v0.1.14 changed; npm tarballs unaffected (already published from old hashes).
+
+### Security
+- All npm advisories cleared (was 3 high / 3 moderate / 1 low): `@modelcontextprotocol/sdk` pinned to 1.30.0 plus a transitive-dependency refresh. `npm audit` reports 0.
 
 ## [0.1.14] - 2026-04-20
 

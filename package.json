@@ -45,7 +45,7 @@
   },
   "homepage": "https://github.com/fidgetcoding/morgen-mcp#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
     "chrono-node": "^2.9.0",
     "dotenv": "17.4.2"
   },
@@ -53,10 +53,10 @@
     "vitest": "4.1.2"
   },
   "optionalDependencies": {
-    "@rolldown/binding-linux-x64-gnu": "1.0.0-rc.15",
-    "@rolldown/binding-linux-arm64-gnu": "1.0.0-rc.15",
     "@rolldown/binding-darwin-arm64": "1.0.0-rc.15",
-    "@rolldown/binding-darwin-x64": "1.0.0-rc.15"
+    "@rolldown/binding-darwin-x64": "1.0.0-rc.15",
+    "@rolldown/binding-linux-arm64-gnu": "1.0.0-rc.15",
+    "@rolldown/binding-linux-x64-gnu": "1.0.0-rc.15"
   },
   "bugs": {
     "url": "https://github.com/fidgetcoding/morgen-mcp/issues"
