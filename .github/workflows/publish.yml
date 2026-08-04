@@ -23,9 +23,12 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-      - name: Upgrade npm to 11+ (required for OIDC trusted-publisher auth)
+      # npm@latest is now 12.x, which requires Node >=22.22.2. Node stays pinned
+      # at 20 here so `npm test` runs on the package.json engines floor, so pin
+      # npm to the 11.x line — the oldest npm with OIDC trusted-publisher support.
+      - name: Upgrade npm to 11.x (required for OIDC trusted-publisher auth)
         run: |
-          npm install -g npm@latest
+          npm install -g npm@^11
           npm --version
       - run: npm ci
       - run: npm test
