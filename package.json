@@ -1,6 +1,6 @@
 {
   "name": "fidgetcoding-morgen-mcp",
-  "version": "0.1.14",
+  "version": "0.2.0",
   "description": "MCP server for Morgen — events, tasks, and calendar management for Claude Code via natural language",
   "type": "module",
   "main": "src/index.js",

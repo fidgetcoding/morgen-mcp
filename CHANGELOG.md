@@ -6,7 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 
 > **Note on package name:** This package was originally published as `morgen-mcp` on npm. Renamed to `fidgetcoding-morgen-mcp` on 2026-04-18 under the FidgetCoding brand umbrella. The old `morgen-mcp` package is deprecated with a redirect message. The GitHub owner account has since been renamed — the canonical URL today is `github.com/fidgetcoding/morgen-mcp` (old `lorecraft-io/morgen-mcp` URLs 301-redirect).
 
-## [Unreleased]
+## [0.2.0] - 2026-08-04
 
 ### Fixed
 - MCP stdio stream corruption: dotenv 17 prints an "injected env" tip line to stdout by default, which lands ahead of the JSON-RPC stream. Suppressed with `quiet: true` in `src/index.js`.
