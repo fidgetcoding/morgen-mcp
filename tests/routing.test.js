@@ -1,7 +1,8 @@
-// Unit tests for v0.1.3 smart account routing and the RSVP status mapping.
+// Unit tests for smart account routing and the RSVP status mapping.
 //
-// These don't hit the network — they exercise the pure inference function
-// from calendar-cache.js and the RSVP past-tense mapping from tools-events.
+// These don't hit the network — they exercise the pure inference function from
+// calendar-cache.js against a fictional MORGEN_ACCOUNT_ROUTES config, plus the
+// self-email resolution helper.
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   inferAccountFromContext,
@@ -10,142 +11,182 @@ import {
   resolveCalendarByAccountName,
   resolveSelfEmail,
 } from "../src/calendar-cache.js";
+import { _resetAccountRoutes } from "../src/account-routes.js";
 
 const ORIGINAL_ENV = { ...process.env };
 
-beforeEach(() => {
-  _resetCalendarCache();
+// Fictional routing table. `studio` is listed before `labs` so the tests can
+// assert configured order decides ties; `primary` is the default fallback.
+const ROUTES = JSON.stringify([
+  {
+    name: "studio",
+    emailDomains: ["@studio.example"],
+    keywords: ["studio", "widget launch"],
+    calendarPattern: "me@studio\\.example|studio",
+  },
+  {
+    name: "labs",
+    emailDomains: ["@labs.example"],
+    keywords: ["labs", "labsco"],
+    calendarPattern: "me@labs\\.example|labs",
+  },
+  {
+    name: "primary",
+    default: true,
+    calendarPattern: "me@primary\\.example|primary",
+  },
+]);
+
+function seedCalendars() {
   _seedCalendarCache([
     {
-      id: "cal-lorecraft",
-      accountId: "acct-lorecraft",
-      name: "nate@lorecraft.io",
+      id: "cal-primary",
+      accountId: "acct-primary",
+      name: "me@primary.example",
       integrationId: "google",
     },
     {
-      id: "cal-parzvl",
-      accountId: "acct-parzvl",
-      name: "nate@parzvl.com",
+      id: "cal-studio",
+      accountId: "acct-studio",
+      name: "me@studio.example",
       integrationId: "google",
     },
     {
-      id: "cal-bloom",
-      accountId: "acct-bloom",
-      name: "nate@bloomit.ai",
+      id: "cal-labs",
+      accountId: "acct-labs",
+      name: "me@labs.example",
       integrationId: "google",
     },
   ]);
+}
+
+beforeEach(() => {
+  _resetCalendarCache();
   process.env = { ...ORIGINAL_ENV };
   delete process.env.MORGEN_SELF_EMAIL;
+  process.env.MORGEN_ACCOUNT_ROUTES = ROUTES;
+  _resetAccountRoutes();
+  seedCalendars();
 });
 
 describe("inferAccountFromContext", () => {
-  it("defaults to lorecraft with no signals", () => {
-    expect(inferAccountFromContext({ title: "Dentist" })).toBe("lorecraft");
+  it("falls back to the default route with no signals", () => {
+    expect(inferAccountFromContext({ title: "Dentist" })).toBe("primary");
   });
 
-  it("routes to parzvl on @parzvl.com participant email", () => {
+  it("routes on a participant email domain", () => {
     expect(
       inferAccountFromContext({
         title: "Client sync",
-        participants: ["someone@parzvl.com"],
+        participants: ["someone@studio.example"],
       })
-    ).toBe("parzvl");
+    ).toBe("studio");
   });
 
-  it("routes to parzvl on 'parzvl' in title", () => {
-    expect(inferAccountFromContext({ title: "PARZVL brand review" })).toBe("parzvl");
+  it("routes on a keyword in the title", () => {
+    expect(inferAccountFromContext({ title: "STUDIO brand review" })).toBe("studio");
   });
 
-  it("routes to parzvl on 'beard club' in description", () => {
+  it("routes on a multi-word keyword in the description", () => {
     expect(
       inferAccountFromContext({
         title: "Sync",
-        description: "Kicking off the beard club campaign",
+        description: "Kicking off the widget launch campaign",
       })
-    ).toBe("parzvl");
+    ).toBe("studio");
   });
 
-  it("routes to bloom on @bloomit.ai participant email", () => {
+  it("routes to a later route on its own email domain", () => {
     expect(
       inferAccountFromContext({
         title: "Standup",
-        participants: ["dan@bloomit.ai"],
+        participants: ["someone@labs.example"],
       })
-    ).toBe("bloom");
+    ).toBe("labs");
   });
 
-  it("routes to bloom on 'bloom' in title", () => {
-    expect(inferAccountFromContext({ title: "Bloom investor prep" })).toBe("bloom");
+  it("routes to a later route on its own keyword", () => {
+    expect(inferAccountFromContext({ title: "labs investor prep" })).toBe("labs");
   });
 
-  it("routes to bloom on 'bloomit' in title", () => {
-    expect(inferAccountFromContext({ title: "bloomit quarterly" })).toBe("bloom");
-  });
-
-  it("parzvl wins over bloom when both keywords appear (parzvl checked first)", () => {
+  it("configured order breaks ties when both keywords appear", () => {
     expect(
-      inferAccountFromContext({
-        title: "parzvl <> bloom joint thing",
-      })
-    ).toBe("parzvl");
+      inferAccountFromContext({ title: "studio <> labs joint thing" })
+    ).toBe("studio");
   });
 
-  it("participant email beats title-only signals", () => {
+  it("participant email beats a title with no cues", () => {
     expect(
       inferAccountFromContext({
         title: "Generic meeting",
-        participants: ["dan@bloomit.ai"],
+        participants: ["someone@labs.example"],
       })
-    ).toBe("bloom");
+    ).toBe("labs");
+  });
+
+  it("returns null when no routes are configured", () => {
+    delete process.env.MORGEN_ACCOUNT_ROUTES;
+    _resetAccountRoutes();
+    expect(inferAccountFromContext({ title: "studio" })).toBe(null);
+  });
+
+  it("returns null when the config is malformed", () => {
+    process.env.MORGEN_ACCOUNT_ROUTES = "{not json";
+    _resetAccountRoutes();
+    expect(inferAccountFromContext({ title: "studio" })).toBe(null);
   });
 });
 
 describe("resolveCalendarByAccountName", () => {
-  it("resolves lorecraft → nate@lorecraft.io calendar", async () => {
-    const meta = await resolveCalendarByAccountName("lorecraft");
-    expect(meta.id).toBe("cal-lorecraft");
-    expect(meta.accountId).toBe("acct-lorecraft");
+  it("resolves the default route to its calendar", async () => {
+    const meta = await resolveCalendarByAccountName("primary");
+    expect(meta.id).toBe("cal-primary");
+    expect(meta.accountId).toBe("acct-primary");
   });
 
-  it("resolves parzvl → nate@parzvl.com calendar", async () => {
-    const meta = await resolveCalendarByAccountName("parzvl");
-    expect(meta.id).toBe("cal-parzvl");
+  it("resolves a keyword route to its calendar", async () => {
+    const meta = await resolveCalendarByAccountName("studio");
+    expect(meta.id).toBe("cal-studio");
   });
 
-  it("resolves bloom → nate@bloomit.ai calendar", async () => {
-    const meta = await resolveCalendarByAccountName("bloom");
-    expect(meta.id).toBe("cal-bloom");
+  it("resolves another route to its calendar", async () => {
+    const meta = await resolveCalendarByAccountName("labs");
+    expect(meta.id).toBe("cal-labs");
   });
 
-  it("falls back to default when account name not found", async () => {
+  it("falls back to default when the account name is unknown", async () => {
     const meta = await resolveCalendarByAccountName("nonexistent");
-    // Falls back to the first non-readonly entry (cal-lorecraft, the first seeded)
-    expect(meta.id).toBe("cal-lorecraft");
+    // Falls back to the first non-readonly entry (cal-primary, seeded first)
+    expect(meta.id).toBe("cal-primary");
+  });
+
+  it("falls back to default when no routes are configured", async () => {
+    delete process.env.MORGEN_ACCOUNT_ROUTES;
+    _resetAccountRoutes();
+    const meta = await resolveCalendarByAccountName(null);
+    expect(meta.id).toBe("cal-primary");
   });
 });
 
 describe("resolveSelfEmail", () => {
   it("prefers MORGEN_SELF_EMAIL env var when valid", () => {
     process.env.MORGEN_SELF_EMAIL = "override@example.com";
-    const email = resolveSelfEmail({ name: "nate@lorecraft.io" });
+    const email = resolveSelfEmail({ name: "me@primary.example" });
     expect(email).toBe("override@example.com");
   });
 
   it("derives from calendar name if env var unset and name looks like an email", () => {
-    const email = resolveSelfEmail({ name: "nate@lorecraft.io" });
-    expect(email).toBe("nate@lorecraft.io");
+    const email = resolveSelfEmail({ name: "me@primary.example" });
+    expect(email).toBe("me@primary.example");
   });
 
   it("ignores invalid env var value and falls back to calendar name", () => {
     process.env.MORGEN_SELF_EMAIL = "not-an-email";
-    const email = resolveSelfEmail({ name: "nate@parzvl.com" });
-    expect(email).toBe("nate@parzvl.com");
+    const email = resolveSelfEmail({ name: "me@studio.example" });
+    expect(email).toBe("me@studio.example");
   });
 
   it("throws with a clear hint when neither source is available", () => {
-    expect(() => resolveSelfEmail({ name: "Work" })).toThrow(
-      /MORGEN_SELF_EMAIL/
-    );
+    expect(() => resolveSelfEmail({ name: "Work" })).toThrow(/MORGEN_SELF_EMAIL/);
   });
 });

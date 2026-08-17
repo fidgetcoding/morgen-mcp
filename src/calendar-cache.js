@@ -1,3 +1,8 @@
+import {
+  getAccountRoutes,
+  getDefaultRouteName,
+  findRouteByName,
+} from "./account-routes.js";
 // Cached calendar directory. Every write endpoint in Morgen's API requires
 // both `calendarId` AND `accountId`, so we need to look up the accountId for
 // a given calendarId. Hitting /v3/calendars/list costs 10 rate points, so we
@@ -101,41 +106,40 @@ export function _resetCalendarCache() {
   loadingPromise = null;
 }
 
-// Smart account routing: infer which connected account a new event should
-// live on based on title, description, and participant emails. Returns a
-// logical account name like "lorecraft" / "parzvl" / "bloom"; callers then
-// resolve that to an actual calendar via resolveCalendarByAccountName.
+// Smart account routing: infer which connected account a new event should live
+// on, from title, description, and participant emails. Returns a logical account
+// name that callers resolve to a real calendar via resolveCalendarByAccountName,
+// or null when the user has configured no routes.
 //
-// Default is "lorecraft" unless an obvious PARZVL or BLOOM signal shows up.
-// Precedence: participant emails first (most reliable), then free-text cues
-// in title + description.
+// The rules come entirely from MORGEN_ACCOUNT_ROUTES — see src/account-routes.js.
+// Routes are tested in configured order and the first match wins; within a route,
+// participant emails are checked before free-text cues because they are the more
+// reliable signal. With no routes configured this returns null and the caller
+// falls back to the default writable calendar.
 export function inferAccountFromContext({ title = "", description = "", participants = [] }) {
+  const routes = getAccountRoutes();
+  if (routes.length === 0) return null;
+
   const text = `${title || ""} ${description || ""}`.toLowerCase();
   const emails = (participants || []).map((p) => String(p || "").toLowerCase());
-  const hasEmail = (domain) => emails.some((e) => e.endsWith(domain));
-  const matches = (re) => re.test(text);
 
-  if (hasEmail("@parzvl.com") || matches(/\bparzvl\b/) || matches(/beard club/)) {
-    return "parzvl";
+  for (const route of routes) {
+    if (route.isDefault) continue; // considered last, below
+    const emailHit = route.emailDomains.some((d) => emails.some((e) => e.endsWith(d)));
+    const keywordHit = route.keywords.some((k) => text.includes(k));
+    if (emailHit || keywordHit) return route.name;
   }
-  if (hasEmail("@bloomit.ai") || matches(/\bbloom(it)?\b/)) {
-    return "bloom";
-  }
-  return "lorecraft";
+  return getDefaultRouteName();
 }
 
-// Map a logical account name to the calendar metadata entry Morgen uses.
-// Falls back to the cache's defaultId if the requested account can't be
-// found (which shouldn't happen in Nate's setup but is safer than throwing).
-const ACCOUNT_NAME_PATTERNS = {
-  lorecraft: /(^|[^a-z0-9])(nate@lorecraft\.io|lorecraft)($|[^a-z0-9])/i,
-  parzvl: /(^|[^a-z0-9])(nate@parzvl\.com|parzvl)($|[^a-z0-9])/i,
-  bloom: /(^|[^a-z0-9])(nate@bloomit\.ai|bloom(?:it)?)($|[^a-z0-9])/i,
-};
-
+// Map a logical account name to the calendar metadata entry Morgen uses. The
+// name-to-calendar patterns come from the user's MORGEN_ACCOUNT_ROUTES config.
+// Falls back to the cache's defaultId when the account can't be matched, which
+// is the right behaviour for a single-account setup.
 export async function resolveCalendarByAccountName(name) {
   const c = await getCalendarCache();
-  const pattern = ACCOUNT_NAME_PATTERNS[name];
+  const route = name ? findRouteByName(name) : null;
+  const pattern = route?.calendarPattern || null;
   if (pattern) {
     for (const entry of c.list) {
       const calName = entry?.name || "";
@@ -154,8 +158,8 @@ export async function resolveCalendarByAccountName(name) {
 // Resolve the caller's own email address, used when keying RSVP patches into
 // the Morgen participants map. Order of resolution:
 //   1. MORGEN_SELF_EMAIL env var (explicit override, always wins)
-//   2. The calendar meta's name if it looks like an email (most of Nate's
-//      Google calendars are named after the account email)
+//   2. The calendar meta's name if it looks like an email (Google calendars
+//      are commonly named after the account email)
 //   3. Throw with a clear hint to set the env var
 export function resolveSelfEmail(calendarMeta) {
   const envEmail = process.env.MORGEN_SELF_EMAIL;
@@ -167,7 +171,7 @@ export function resolveSelfEmail(calendarMeta) {
     return name;
   }
   throw new Error(
-    `Could not determine your own email address for RSVP patching. Set the MORGEN_SELF_EMAIL environment variable (e.g. nate@lorecraft.io) in your MCP config.`
+    `Could not determine your own email address for RSVP patching. Set the MORGEN_SELF_EMAIL environment variable (e.g. you@example.com) in your MCP config.`
   );
 }
 

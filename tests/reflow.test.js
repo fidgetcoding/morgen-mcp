@@ -137,7 +137,7 @@ describe("validateReflowDate", () => {
 });
 
 describe("isSoloBlock", () => {
-  const self = "nate@lorecraft.io";
+  const self = "me@example.com";
 
   it("true when caller is the only participant", () => {
     const event = {
@@ -155,21 +155,21 @@ describe("isSoloBlock", () => {
   it("false with one external participant", () => {
     const event = {
       organizer: self,
-      participants: [{ email: self }, { email: "dan@bloomit.ai" }],
+      participants: [{ email: self }, { email: "someone@partner.example" }],
     };
     expect(isSoloBlock(event, self)).toBe(false);
   });
   it("false when organizer is external", () => {
     const event = {
-      organizer: "david@lava.foundation",
+      organizer: "external@partner.example",
       participants: [{ email: self }],
     };
     expect(isSoloBlock(event, self)).toBe(false);
   });
   it("case-insensitive email match", () => {
     const event = {
-      organizer: "NATE@lorecraft.io",
-      participants: [{ email: "Nate@LoreCraft.IO" }],
+      organizer: "ME@example.com",
+      participants: [{ email: "Me@Example.COM" }],
     };
     expect(isSoloBlock(event, self)).toBe(true);
   });

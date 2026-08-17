@@ -192,13 +192,17 @@ async function handleCreateEvent(args = {}) {
   if (args.privacy !== undefined) validateEnum(args.privacy, EVENT_PRIVACY, "privacy");
   if (args.free_busy_status !== undefined) validateEnum(args.free_busy_status, FREE_BUSY_STATUS, "free_busy_status");
   if (args.virtual_room !== undefined) validateEnum(args.virtual_room, VIRTUAL_ROOM_TYPES, "virtual_room");
-  if (args.account !== undefined) validateEnum(args.account, ACCOUNT_NAMES, "account");
+  // Only enforce the enum when routes are configured; otherwise any name is
+  // accepted and simply resolves to the default calendar.
+  if (args.account !== undefined && ACCOUNT_NAMES.length > 0) {
+    validateEnum(args.account, ACCOUNT_NAMES, "account");
+  }
 
   // Calendar resolution precedence:
   //   1. explicit calendar_id (caller knows exactly which calendar)
-  //   2. explicit account name override (caller says "parzvl" / "bloom")
+  //   2. explicit account name override (a name from MORGEN_ACCOUNT_ROUTES)
   //   3. smart routing inferred from title + description + participants
-  //      (catches obvious PARZVL / BLOOM signals, falls back to lorecraft)
+  //      (matches configured routes, then the configured default route)
   //   4. default writable calendar (last resort)
   let calendarMeta;
   if (args.calendar_id) {

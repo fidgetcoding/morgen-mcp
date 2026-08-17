@@ -40,7 +40,7 @@ Confirmed 2026-04-15 by John Mavrick (Software Developer @ Morgen) via direct em
 - Do **not** invest in task-list discovery or lookup by name — the resource is going away in the next Morgen app release. The earlier probes for `/v3/tasks/lists`, `/v3/task-lists`, `/v3/tasks/containers` (all 404) were hitting a resource Morgen never intended to expose and is now removing.
 - Keep `taskListId: "inbox"` as a shim **for now** — it's the only valid value today and the create endpoint still requires a list. Once the new app ships it will likely become optional or ignored.
 - **Tags replace lists as the primary organization mechanism.** "Inbox" becomes a tag called `Inbox`, "Lorecraft" becomes a tag called `Lorecraft`, etc.
-- Tags are **multi-valued**, unlike lists — this is actually useful (a task can be both `Lorecraft` and `Urgent`). Enforce "one Area tag at a time" in application logic, not via schema; John confirmed Morgen itself relies on prompt/convention for this.
+- Tags are **multi-valued**, unlike lists — this is actually useful (a task can be both `ProjectA` and `Urgent`). Enforce "one Area tag at a time" in application logic, not via schema; John confirmed Morgen itself relies on prompt/convention for this.
 - Task completion status is **orthogonal** to tags. The `progress` enum (and `/tasks/close` / `/tasks/reopen`) keeps working exactly as before. Switching from lists to tags changes the organizational bucket, not the checkbox.
 
 Related memory: `reference_morgen_api_quirks.md`, `project_morgen_first_party_mcp.md`.

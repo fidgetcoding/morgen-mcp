@@ -1,3 +1,4 @@
+import { getAccountNames } from "./account-routes.js";
 // MCP tool definitions for Morgen event tools. Pulled into a separate file
 // to keep tools-events.js under the 500-line project limit.
 
@@ -6,7 +7,9 @@ const RSVP_RESPONSES = ["accept", "decline", "tentative"];
 const EVENT_PRIVACY = ["public", "private", "secret"];
 const FREE_BUSY_STATUS = ["free", "busy"];
 const VIRTUAL_ROOM_TYPES = ["default", "googleMeet", "microsoftTeams"];
-const ACCOUNT_NAMES = ["lorecraft", "parzvl", "bloom"];
+// Logical account names come from the user's MORGEN_ACCOUNT_ROUTES config
+// (see src/account-routes.js). Empty when routing is not configured.
+const ACCOUNT_NAMES = getAccountNames();
 
 export const EVENT_TOOLS = [
   {
@@ -55,7 +58,7 @@ export const EVENT_TOOLS = [
   {
     name: "create_event",
     description:
-      "Create a calendar event. If calendar_id is omitted, smart routing picks the right account automatically: obvious PARZVL signals (participants@parzvl.com, 'parzvl'/'beard club' in title/description) route to the PARZVL calendar, obvious BLOOM signals (participants@bloomit.ai, 'bloom'/'bloomit') route to the BLOOM calendar, everything else defaults to nate@lorecraft.io. Pass `account: 'parzvl' | 'bloom' | 'lorecraft'` to override the inference explicitly.",
+      "Create a calendar event. If calendar_id is omitted, smart routing picks an account from your MORGEN_ACCOUNT_ROUTES config by matching participant email domains and title/description keywords, falling back to your default route and then to the default writable calendar. Pass `account` to override the inference explicitly.",
     inputSchema: {
       type: "object",
       properties: {
@@ -66,9 +69,13 @@ export const EVENT_TOOLS = [
         },
         account: {
           type: "string",
-          enum: ACCOUNT_NAMES,
+          // Only constrain the enum when the user has configured routes;
+          // an empty enum would reject every value.
+          ...(ACCOUNT_NAMES.length > 0 ? { enum: ACCOUNT_NAMES } : {}),
           description:
-            "Force the event onto a specific connected account (overrides smart routing). One of 'lorecraft', 'parzvl', 'bloom'.",
+            ACCOUNT_NAMES.length > 0
+              ? `Force the event onto a specific connected account (overrides smart routing). One of: ${ACCOUNT_NAMES.join(", ")}.`
+              : "Force the event onto a specific connected account (overrides smart routing). Configure MORGEN_ACCOUNT_ROUTES to enable account names.",
         },
         title: { type: "string", description: "Event title" },
         start: {

@@ -122,7 +122,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 
 ### Changed
 - `rsvp_event` rewritten to PATCH the caller's participant entry directly (Morgen has no dedicated RSVP endpoint).
-- Smart account routing: `create_event` auto-routes to PARZVL / BLOOM / Lorecraft based on title + description + participant email heuristics.
+- Smart account routing: `create_event` auto-routes to a configured account based on title + description + participant email heuristics.
 - Richer event shape: `privacy`, `free_busy_status`, `virtual_room`, `color_id`, `alerts` now supported.
 
 ## [0.1.2] - 2026-04-14

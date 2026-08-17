@@ -291,6 +291,48 @@ That is the whole setup. No token refresh cycles, no IndexedDB spelunking.
 | `MORGEN_API_KEY` | Yes | Your Morgen API key from [platform.morgen.so/developers-api](https://platform.morgen.so/developers-api) |
 | `MORGEN_TIMEZONE` | No | IANA timezone for calendar operations (default: `America/New_York`). Used for formatting event times and task due dates. |
 | `MORGEN_SELF_EMAIL` | No | Your own email address — used by `rsvp_event` to key your RSVP into the participants map. Only needed if it can't be inferred from the calendar name (most Google calendars are named after the account email). |
+| `MORGEN_ACCOUNT_ROUTES` | No | JSON array of smart-routing rules for `create_event`. Unset means routing is off and events go to your default writable calendar. See [Smart account routing](#smart-account-routing). |
+
+### Smart account routing
+
+If you have several accounts connected to Morgen, `create_event` can pick the right
+one for you when you omit `calendar_id`. The rules are yours to define — set
+`MORGEN_ACCOUNT_ROUTES` to a JSON array:
+
+```json
+[
+  {
+    "name": "work",
+    "emailDomains": ["@acme.com"],
+    "keywords": ["acme", "widget launch"],
+    "calendarPattern": "acme|me@acme\\.com"
+  },
+  {
+    "name": "personal",
+    "default": true,
+    "calendarPattern": "me@example\\.com"
+  }
+]
+```
+
+| Field | Meaning |
+|---|---|
+| `name` | Logical account name. This is what `account:` accepts on `create_event`. |
+| `emailDomains` | Participant email suffixes that select this route. |
+| `keywords` | Case-insensitive substrings matched against title + description. |
+| `calendarPattern` | Regex matched against your calendar names to find the calendar. |
+| `default` | Set `true` on at most one route — used when nothing else matches. |
+
+Routes are tested in order and the first match wins; within a route, participant
+emails are checked before free-text keywords. Pass `account: "work"` to override
+the inference for a single event.
+
+Leave the variable unset and routing simply switches off, which is the right
+behaviour for a single-account setup. A malformed config disables routing rather
+than half-applying it — a partially-understood routing table would file events on
+the wrong calendar, which is worse than not routing at all. The server prints a
+warning to stderr explaining what it could not parse.
+
 
 <p align="right"><a href="#top">↑ back to top</a></p>
 

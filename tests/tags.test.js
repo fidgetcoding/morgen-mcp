@@ -160,12 +160,12 @@ describe("resolveTagLabelsToIds", () => {
     installFetchMock({
       "GET /v3/tags/list": [
         { id: "uuid-urgent", name: "Urgent", color: "#FF0000" },
-        { id: "uuid-lorecraft", name: "Lorecraft", color: "#00FF00" },
+        { id: "uuid-project", name: "ProjectA", color: "#00FF00" },
       ],
     });
-    expect(await resolveTagLabelsToIds(["Urgent", "Lorecraft"])).toEqual([
+    expect(await resolveTagLabelsToIds(["Urgent", "ProjectA"])).toEqual([
       "uuid-urgent",
-      "uuid-lorecraft",
+      "uuid-project",
     ]);
   });
 
