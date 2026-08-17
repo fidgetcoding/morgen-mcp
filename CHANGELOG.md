@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 
 > **Note on package name:** This package was originally published as `morgen-mcp` on npm. Renamed to `fidgetcoding-morgen-mcp` on 2026-04-18 under the FidgetCoding brand umbrella. The old `morgen-mcp` package is deprecated with a redirect message. The GitHub owner account has since been renamed — the canonical URL today is `github.com/fidgetcoding/morgen-mcp` (old `lorecraft-io/morgen-mcp` URLs 301-redirect).
 
+## [0.3.0] - 2026-08-17
+
+### Changed
+- **BREAKING — smart account routing is now user-configurable.** Account routing was hardcoded to the maintainer's own accounts: real client codenames and email domains were compiled into `src/calendar-cache.js` and `src/tools-events-schema.js`, restated in the `create_event` tool description, and used as test fixtures. That shipped a private client roster to every reader and installer of a public package, and the routing was useless to anyone else.
+
+  Routing now comes from `MORGEN_ACCOUNT_ROUTES`, a JSON array of `{name, emailDomains, keywords, calendarPattern, default}` rules parsed and validated by the new `src/account-routes.js`. Semantics are preserved: routes are tested in configured order, participant emails beat free-text keywords within a route, and the route marked `default` is the fallback.
+
+  Leave the variable unset and routing switches off — `create_event` then uses the default writable calendar, which is correct for a single-account setup. A malformed config is rejected whole rather than half-applied, since a partially-understood routing table would file events on the wrong calendar. See "Smart account routing" in the README.
+
+  **To upgrade:** set `MORGEN_ACCOUNT_ROUTES` to restore per-account routing. No other action needed.
+
+- The `account` enum on `create_event` is now built from the configured routes, and the constraint is omitted entirely when none are configured so an empty enum cannot reject every value.
+- A test case named after the maintainer's actual weekday schedule now describes the shape being tested instead. A timezone comment that framed one zone as a personal default is now neutral.
+
+### Security
+- Versions 0.1.10 through 0.2.0 contain the hardcoded client identifiers described above and are deprecated. npm tarballs are immutable, so those releases cannot be scrubbed in place — this release supersedes them.
+
 ## [0.2.0] - 2026-08-04
 
 ### Fixed
