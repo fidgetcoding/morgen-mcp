@@ -56,7 +56,7 @@ const MAX_ID_LEN = 500;
 // Timezone resolution order:
 //   1. MORGEN_TIMEZONE env var (explicit override)
 //   2. Node's Intl-reported system timezone (picks up the user's OS setting)
-//   3. America/New_York (Nate's default / sane fallback)
+//   3. America/New_York (last-resort fallback)
 function resolveDefaultTimezone() {
   if (process.env.MORGEN_TIMEZONE) return process.env.MORGEN_TIMEZONE;
   try {

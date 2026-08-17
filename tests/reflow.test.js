@@ -233,7 +233,7 @@ describe("compressSchedule", () => {
     expect(plan[0].new_end).toBe("2026-04-14T10:00:00");
   });
 
-  it("reproduces Nate's schedule exactly: LLC→Karpathy→CLI-MAXXING→n8n from 13:00", () => {
+  it("reproduces a four-block afternoon exactly, from 13:00", () => {
     const events = [
       { id: "llc",      title: "LLC rename",      start: "2026-04-14T13:00:00", duration: "PT15M" },
       { id: "karpathy", title: "Karpathy update", start: "2026-04-14T13:15:00", duration: "PT45M" },
