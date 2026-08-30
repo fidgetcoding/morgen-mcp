@@ -1,3 +1,5 @@
+
+
 <a id="top"></a>
 
 <div align="center">
@@ -425,6 +427,9 @@ cp .env.example .env
 
 # Run directly
 npm start
+
+# Run the test suite
+npm test
 ```
 
 <p align="right"><a href="#top">↑ back to top</a></p>
