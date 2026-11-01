@@ -19,6 +19,7 @@ import { morgenFetch } from "./client.js";
 import { validateId, validateISODate, validateIntegerRange, toFloatingDateTime } from "./validation.js";
 import { resolveTagLabelsToIds, validateTagLabels } from "./tags.js";
 import { resolveDateTimeInput } from "./nl-date-parser.js";
+import { GET_TASK_TOOL, LIST_TASKS_TOOL, getTask, listTasks, shapeTask } from "./task-read.js";
 
 // Re-export tag helpers so existing imports from tools-tasks.js keep working
 // and unit tests can reach them via a single public surface.
@@ -69,48 +70,6 @@ function validateDescription(value) {
   return value;
 }
 
-function unwrapTask(raw) {
-  return raw?.data?.task ?? raw?.task ?? raw?.data ?? raw;
-}
-
-function unwrapTaskList(raw) {
-  if (Array.isArray(raw)) return raw;
-  return (
-    raw?.data?.tasks ??
-    raw?.tasks ??
-    (Array.isArray(raw?.data) ? raw.data : []) ??
-    []
-  );
-}
-
-function shapeTask(raw) {
-  const task = unwrapTask(raw);
-  if (!task || typeof task !== "object") return null;
-  return {
-    id: task.id ?? null,
-    title: task.title ?? null,
-    description: task.description ?? null,
-    due: task.due ?? null,
-    priority: typeof task.priority === "number" ? task.priority : null,
-    taskListId: task.taskListId ?? null,
-    accountId: task.accountId ?? null,
-    integrationId: task.integrationId ?? "morgen",
-    progress: task.progress ?? null,
-    position: typeof task.position === "number" ? task.position : null,
-    estimatedDuration: task.estimatedDuration ?? null,
-    timeZone: task.timeZone ?? null,
-    tags: Array.isArray(task.tags) ? task.tags : undefined,
-    created: task.created ?? null,
-    updated: task.updated ?? null,
-  };
-}
-
-function shapeTaskList(raw) {
-  const list = unwrapTaskList(raw);
-  const tasks = list.map(shapeTask).filter(Boolean);
-  return { count: tasks.length, tasks };
-}
-
 // Synthesize a task-shaped return value from the request body + the id the
 // server echoed. Morgen's /v3/tasks/create response is { data: { id } } only —
 // it does not contain the full task. Same for /v3/tasks/update. This gives
@@ -144,16 +103,8 @@ function synthesizeTaskFromBody(body, serverResponse, { isCreate = false } = {})
 export { synthesizeTaskFromBody };
 
 export const TASK_TOOLS = [
-  {
-    name: "list_tasks",
-    description:
-      "List native Morgen tasks. Does not include tasks synced from external providers (Todoist, Google Tasks, etc.).",
-    inputSchema: {
-      type: "object",
-      properties: {},
-      additionalProperties: false,
-    },
-  },
+  LIST_TASKS_TOOL,
+  GET_TASK_TOOL,
   {
     name: "create_task",
     description:
@@ -333,10 +284,8 @@ export const TASK_TOOLS = [
 ];
 
 export const taskHandlers = {
-  list_tasks: async () => {
-    const response = await morgenFetch("/v3/tasks/list?limit=500", { points: 10 });
-    return shapeTaskList(response);
-  },
+  list_tasks: listTasks,
+  get_task: getTask,
 
   create_task: async (args = {}) => {
     const title = validateTitle(args.title);

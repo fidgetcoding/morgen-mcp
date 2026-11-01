@@ -8,13 +8,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 
 ## [Unreleased]
 
+### Added
+- **`get_task`**, which reads one task by ID, including a completed or deleted one.
+- **`include_task_ids` on `list_tasks`.** Morgen's list returns open tasks only and can't be told otherwise, so this adds specific completed or deleted tasks by ID. Task results now carry `deleted` and `scheduled` when Morgen sends them.
+
 ### Fixed
+- **The README said the free tier covers this MCP.** Morgen's pricing page lists a 14-day trial and paid plans, with no free tier, and its docs say API access depends on the plan. A 403 now mentions that.
+- `delete_task` was described as permanent. Morgen keeps the record, flagged `deleted`.
 - **Natural-language dates came back a day off when the machine and the target timezone were on different calendar days.** chrono decides what "today" means from the system clock, and the parser then stamped the target zone's offset on that date. At 03:00 on the 16th in Dubai, "9am" in America/New_York (still the evening of the 15th there) resolved to the 16th. chrono now gets the target zone's offset as its reference, so "today", "tomorrow", weekdays and bare times are read on the target zone's calendar. Applies to `resolveDateTimeInput`, `resolveDateInput` and `resolveTimeInput`.
 - **Tasks ignored your timezone.** `create_task`, `update_task` and `event_to_task` fell through to a hardcoded `America/New_York` when no `timezone` was passed, while events used `MORGEN_TIMEZONE` or the system zone. The parser now defaults to the same order everywhere. The resolver lives in one place instead of three copies. The README's stated default is corrected too.
 - Two parser tests pinned a clock where Tokyo was already on the 15th and still expected "tomorrow" to be the 15th, which only passed because of the bug. They now pin an instant where all three zones share a date.
 
 ### Security
 - `@modelcontextprotocol/sdk` 1.30.0 to 1.32.2, plus a lockfile refresh of transitive dependencies. Clears the critical and high production advisories (`proxy-addr`, `body-parser`, `fast-uri`, `hono`, `zod`, the SDK's own).
+
+- `vitest` to 4.x latest, clearing the 3 moderate dev-only Dependabot alerts.
 
 ### Changed
 - CI runs the suite under five timezones (America/New_York, Asia/Dubai, Asia/Tokyo, America/Los_Angeles, Pacific/Auckland).

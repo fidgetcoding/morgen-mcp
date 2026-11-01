@@ -46,11 +46,11 @@
 
 ## Why Morgen (and this MCP)
 
-[Morgen](https://morgen.so) is an auto-scheduling calendar and task app that unifies Google, Outlook, iCloud, and native tasks into a single pane. You can sign up at [morgen.so](https://morgen.so) — the free tier covers everything this MCP needs.
+[Morgen](https://morgen.so) is an auto-scheduling calendar and task app that unifies Google, Outlook, iCloud, and native tasks into a single pane. You can sign up at [morgen.so](https://morgen.so). There's no free tier: you get a 14-day free trial, then [Pro at $15 a month billed yearly, or $30 billed monthly](https://www.morgen.so/pricing) (checked 2026-11-01). [Morgen's docs](https://docs.morgen.so/authentication) say API access depends on your plan, and a key without it gets HTTP 403 "Missing entitlements".
 
 I was on Motion before I switched. Three reasons the move stuck:
 
-- **Cheaper.** I run Morgen entirely on the free tier. Motion's paid plan was the floor.
+- **Cheaper.** [Morgen's own comparison](https://www.morgen.so/pricing) starts it at $15 a month against Motion's $19.
 - **Better product.** Morgen unifies calendars and tasks in one auto-scheduling surface, and the UI is cleaner. The auto-scheduler is genuinely opinionated in the right places.
 - **Better API.** The Morgen public API is well-designed enough to actually wrap — one API key, no browser-storage refresh tokens, no Firebase. That's why this MCP exists and feels thin.
 
@@ -125,13 +125,14 @@ The MCP stays a thin layer: one `fetch` per Morgen endpoint, local rate-limit bo
 
 | Tool | Description |
 |---|---|
-| `list_tasks` | List native Morgen tasks |
+| `list_tasks` | List open native Morgen tasks. Pass `include_task_ids` to add completed or deleted ones by ID |
+| `get_task` | Read one task by ID, including a completed or deleted one |
 | `create_task` | Create a new task with title, description, due date, priority (integer 0-9; 1 = highest, 9 = lowest, 0 = undefined), and tag labels |
 | `update_task` | Update an existing task — change title, description, due date, priority, or tag labels |
 | `move_task` | Move a task to a different Morgen task list |
 | `close_task` | Mark a task as completed |
 | `reopen_task` | Reopen a completed task |
-| `delete_task` | Delete a task permanently |
+| `delete_task` | Delete a task. Morgen keeps the record, flagged `deleted`, and it stays readable with `get_task` |
 
 > **Note on `tags`:** Pass tags as an array of human-readable **label strings** (e.g. `["urgent","admin"]`). The MCP resolves each label to a Morgen tag UUID via `/v3/tags/list` + `/v3/tags/create` and auto-creates any tag that doesn't already exist. Match is case-insensitive. This costs an extra 10 rate-limit points per tagged call (for the `tags/list` lookup) plus 1 point per newly-created tag.
 
@@ -212,7 +213,11 @@ Returns a plan showing each event's old start → new start. Re-run with `dry_ru
 
 ## Important Note About Tasks
 
-Morgen's `/tasks` endpoints only manage **native Morgen tasks** — the ones created directly inside Morgen with `integrationId: "morgen"`. Tasks that Morgen syncs in from external providers like Todoist, Google Tasks, Microsoft To Do, or Things are fully visible in the Morgen app but are **not writable through this MCP**. The Morgen API intentionally scopes write access to its own native task system.
+Three limits come from Morgen's API, and I can't fix them from here. I checked each against [Morgen's docs](https://docs.morgen.so/tasks) on 2026-11-01.
+
+- **Only native Morgen tasks are writable.** The docs cover "first-party Morgen tasks" only. Tasks Morgen syncs in from Todoist, Google Tasks, Microsoft To Do, or Things show up in the Morgen app, but no documented endpoint writes to them.
+- **A task can't be put on the calendar through the API.** A new task lands in your task list, and you drag it to a time slot in Morgen. The task fields have no start time, `scheduled` is read-only, and the `taskId` that ties an event to a task is [read-only on events](https://docs.morgen.so/events).
+- **You can't list completed or deleted tasks.** The docs say `/tasks/list` returns only open tasks, with no option to change that. If you know the ID, `get_task` or `list_tasks` with `include_task_ids` will read them.
 
 The practical takeaway: if you want Claude to create, update, and close tasks programmatically, create them as native Morgen tasks. Everything else stays read-only from Morgen's side and should be managed through that provider's own integration.
 

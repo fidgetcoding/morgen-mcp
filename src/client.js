@@ -122,8 +122,11 @@ export async function morgenFetch(path, { method = "GET", body, points = 1 } = {
       const res = await fetchWithTimeout(`${MORGEN_BASE}${path}`, init);
 
       if (!res.ok) {
+        // https://docs.morgen.so/authentication: a valid key on a plan without
+        // API access gets a 403 "Missing entitlements".
+        const hint = res.status === 403 ? " If your key is valid, your Morgen plan may not include API access." : "";
         throw new Error(
-          `Morgen API error (HTTP ${res.status}). The request to ${path} was not successful.`
+          `Morgen API error (HTTP ${res.status}). The request to ${path} was not successful.${hint}`
         );
       }
 

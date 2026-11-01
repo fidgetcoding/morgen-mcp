@@ -48,7 +48,23 @@ Related memory: `reference_morgen_api_quirks.md`, `project_morgen_first_party_mc
 
 Note: `created`/`updated` timestamps (not `createdAt`/`updatedAt`). No `completed` boolean — status is represented via `progress` (String).
 
+### Listing completed and deleted tasks — by ID only
+Checked against https://docs.morgen.so/tasks on 2026-11-01.
+
+- `/v3/tasks/list` "returns only open tasks". Its only documented parameters are `limit` and `updatedAfter`.
+- `GET /v3/tasks?id=<id>` reads any task and always returns 200: the task, the task with `deleted: true`, or `data.task: null` for an unknown ID.
+- Deleting keeps the record, readable indefinitely.
+- The docs give `limit` a maximum of 100. This server sends `limit=500`, which live calls accept. Not verified whether more than 100 still come back.
+
+### Writing tasks from other integrations — not documented
+Checked against https://docs.morgen.so/tasks and https://docs.morgen.so/integrations on 2026-11-01. The tasks docs cover "first-party Morgen tasks" and list `integrationId` as `"morgen"`. The integrations docs only list connected accounts; connecting and disconnecting happen in the app.
+
+### Plans
+Checked 2026-11-01. https://www.morgen.so/pricing lists a 14-day free trial, then Pro ($30 monthly, or $15 a month billed yearly) and Team, with no free plan. https://docs.morgen.so/authentication says API access depends on the plan and a plan without it returns 403 "Missing entitlements". Neither page says which plans include it.
+
 ### Task-to-calendar scheduling — NOT exposed by the public API
+Docs re-checked 2026-11-01: still read-only. `morgen.so:metadata` (with `taskId`) and `morgen.so:derived` (with `scheduled`) are read-only, and the create and update field lists have no start time.
+
 Confirmed 2026-04-14. Morgen's web app has a drag-task-to-calendar feature that produces events with `morgen.so:metadata.taskId` set (and the checkbox render in the UI). **This mechanism is NOT exposed by the public v3 API.** Specifically verified:
 
 - `/v3/tasks/update` whitelist-rejects `start`, `scheduledStart`, `calendarId`, `accountId`. Error: `"property <field> should not exist"`.

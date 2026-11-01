@@ -50,7 +50,7 @@
     "dotenv": "17.4.2"
   },
   "devDependencies": {
-    "vitest": "4.1.2"
+    "vitest": "4.1.12"
   },
   "optionalDependencies": {
     "@rolldown/binding-darwin-arm64": "1.0.0-rc.15",
