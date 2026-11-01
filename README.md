@@ -48,7 +48,7 @@
 
 [Morgen](https://morgen.so) is an auto-scheduling calendar and task app that unifies Google, Outlook, iCloud, and native tasks into a single pane. You can sign up at [morgen.so](https://morgen.so) — the free tier covers everything this MCP needs.
 
-I (Nate) was on Motion before I switched. Three reasons the move stuck:
+I was on Motion before I switched. Three reasons the move stuck:
 
 - **Cheaper.** I run Morgen entirely on the free tier. Motion's paid plan was the floor.
 - **Better product.** Morgen unifies calendars and tasks in one auto-scheduling surface, and the UI is cleaner. The auto-scheduler is genuinely opinionated in the right places.
