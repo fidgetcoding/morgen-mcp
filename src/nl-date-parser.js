@@ -6,18 +6,34 @@
 // that already look ISO are returned untouched so existing callers and the
 // validation helpers downstream keep working.
 //
-// Timezone awareness: chrono's parseDate ignores IANA timezone names on its
-// own; it parses components against the system TZ. We compensate by pulling
-// the wall-clock year/month/day/hour/minute out of chrono's ParsingResult
-// and then re-projecting them into the target IANA zone to compute the
-// correct UTC offset. This is enough for "tomorrow at 9am in America/New_York"
-// vs "tomorrow at 9am in Europe/London" to produce different instants.
+// Timezone awareness: chrono knows nothing about IANA names and, left alone,
+// decides what "today" means from the system clock. We hand it the target
+// zone's current UTC offset as its reference, so "today" / "tomorrow" / "9am"
+// are read on the target zone's calendar even when the machine is on a
+// different day. We then pull the wall-clock year/month/day/hour/minute out of
+// chrono's ParsingResult and re-project them into the target IANA zone, because
+// the offset on the resolved date can differ from today's across DST.
 
 import * as chrono from "chrono-node";
 
 const ISO_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_HHMM_RE = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+
+// Timezone resolution order:
+//   1. MORGEN_TIMEZONE env var (explicit override)
+//   2. Node's Intl-reported system timezone (picks up the user's OS setting)
+//   3. America/New_York (last-resort fallback)
+export function resolveDefaultTimezone() {
+  if (process.env.MORGEN_TIMEZONE) return process.env.MORGEN_TIMEZONE;
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz && typeof tz === "string") return tz;
+  } catch {
+    // fall through
+  }
+  return "America/New_York";
+}
 
 function assertNonEmpty(input, field) {
   if (input === undefined || input === null || input === "") {
@@ -100,8 +116,12 @@ function wallClockToIso(year, month, day, hour, minute, second, tz) {
   );
 }
 
-function chronoParseComponents(input, field) {
-  const results = chrono.parse(input, new Date());
+function chronoParseComponents(input, field, tz) {
+  const instant = new Date();
+  const results = chrono.parse(input, {
+    instant,
+    timezone: zoneOffsetMinutesAt(instant.getTime(), tz),
+  });
   if (!results || results.length === 0) {
     throw new Error(
       `${field}: could not parse "${input}" as a date/time. ` +
@@ -110,6 +130,24 @@ function chronoParseComponents(input, field) {
     );
   }
   const comp = results[0].start;
+  // "in 2 hours" is a fixed distance from now, so read it without the zone
+  // reference: chrono applies that reference through host-local clock math,
+  // which lands an hour out when the shifted time crosses the host's DST change.
+  if (comp.tags().has("result/relativeDateAndTime")) {
+    const date = chrono.parse(input, instant)[0].start.date();
+    const wall = new Date(date.getTime() + zoneOffsetMinutesAt(date.getTime(), tz) * 60000);
+    return {
+      year: wall.getUTCFullYear(),
+      month: wall.getUTCMonth() + 1,
+      day: wall.getUTCDate(),
+      hour: wall.getUTCHours(),
+      minute: wall.getUTCMinutes(),
+      second: wall.getUTCSeconds(),
+      tzCertain: true,
+      tzOffsetMinutes: comp.get("timezoneOffset"),
+      date,
+    };
+  }
   return {
     year: comp.get("year"),
     month: comp.get("month"),
@@ -125,11 +163,11 @@ function chronoParseComponents(input, field) {
 
 // Accepts ISO 8601 (e.g. "2026-04-15T10:00:00-04:00") or natural language.
 // Returns an ISO 8601 string with explicit offset in the target timezone.
-export function resolveDateTimeInput(input, tz = "America/New_York") {
+export function resolveDateTimeInput(input, tz = resolveDefaultTimezone()) {
   assertNonEmpty(input, "date/time");
   if (ISO_DATETIME_RE.test(input)) return input;
 
-  const comp = chronoParseComponents(input, "date/time");
+  const comp = chronoParseComponents(input, "date/time", tz);
   if (comp.tzCertain && typeof comp.tzOffsetMinutes === "number") {
     // Chrono recognized an explicit offset (e.g. "3pm EDT") — trust it.
     return comp.date.toISOString();
@@ -148,11 +186,11 @@ export function resolveDateTimeInput(input, tz = "America/New_York") {
 // Date-only variant — YYYY-MM-DD strings pass through; anything else is
 // parsed via chrono and the resulting date's wall-clock date-in-tz is
 // returned. Used by reflow_day's `date` param.
-export function resolveDateInput(input, tz = "America/New_York") {
+export function resolveDateInput(input, tz = resolveDefaultTimezone()) {
   assertNonEmpty(input, "date");
   if (DATE_ONLY_RE.test(input)) return input;
 
-  const comp = chronoParseComponents(input, "date");
+  const comp = chronoParseComponents(input, "date", tz);
   // Render the resolved date as a YYYY-MM-DD in the target tz. Use the same
   // wall-clock components chrono picked, re-projected through the zone so
   // a midnight-at-the-other-side-of-the-world parse still names the right
@@ -167,7 +205,7 @@ export function resolveDateInput(input, tz = "America/New_York") {
 // Time-only variant — HH:MM or HH:MM:SS pass through (mirroring the existing
 // validateAnchorTime regex). Everything else goes through chrono so "1pm" /
 // "3:30pm" / "noon" works. Returns normalized HH:MM:SS.
-export function resolveTimeInput(input) {
+export function resolveTimeInput(input, tz = resolveDefaultTimezone()) {
   assertNonEmpty(input, "time");
   const hhmm = input.match(TIME_HHMM_RE);
   if (hhmm) {
@@ -179,7 +217,7 @@ export function resolveTimeInput(input) {
     }
     return `${pad(h)}:${pad(m)}:${pad(s)}`;
   }
-  const comp = chronoParseComponents(input, "time");
+  const comp = chronoParseComponents(input, "time", tz);
   const h = comp.hour ?? 0;
   const m = comp.minute ?? 0;
   const s = comp.second ?? 0;

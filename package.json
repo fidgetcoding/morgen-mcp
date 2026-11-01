@@ -1,7 +1,7 @@
 {
   "name": "fidgetcoding-morgen-mcp",
   "version": "0.3.0",
-  "description": "MCP server for Morgen \u2014 events, tasks, and calendar management for Claude Code via natural language",
+  "description": "MCP server for Morgen — events, tasks, and calendar management for Claude Code via natural language",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -45,7 +45,7 @@
   },
   "homepage": "https://github.com/fidgetcoding/morgen-mcp#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "chrono-node": "^2.9.0",
     "dotenv": "17.4.2"
   },

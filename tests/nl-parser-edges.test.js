@@ -36,9 +36,8 @@ describe("resolveDateTimeInput — IANA timezone projection", () => {
   afterEach(() => vi.useRealTimers());
 
   it("'tomorrow at midnight' in America/New_York produces -04:00 at 04:00Z", () => {
-    // Pin to a Tuesday afternoon (well clear of DST edges) in early-mid April
-    // so chrono's system-tz parse puts "tomorrow" on 2026-04-15 regardless of
-    // whether the host is NY or UTC.
+    // Pin to a Tuesday afternoon (well clear of DST edges) in early-mid April.
+    // "tomorrow" is read on the target zone's calendar, not the host's.
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-14T12:00:00-04:00"));
 
@@ -61,8 +60,9 @@ describe("resolveDateTimeInput — IANA timezone projection", () => {
   });
 
   it("'tomorrow at midnight' in Asia/Tokyo produces +09:00 at 15:00Z prev-day", () => {
+    // 10:00Z is still 2026-04-14 in Tokyo (19:00), so "tomorrow" is the 15th.
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-04-14T12:00:00-04:00"));
+    vi.setSystemTime(new Date("2026-04-14T10:00:00Z"));
 
     const iso = resolveDateTimeInput("tomorrow at midnight", "Asia/Tokyo");
     expect(datePart(iso)).toBe("2026-04-15");
@@ -72,8 +72,9 @@ describe("resolveDateTimeInput — IANA timezone projection", () => {
   });
 
   it("NY vs London vs Tokyo for the same wall clock yield different UTC instants", () => {
+    // 10:00Z is 2026-04-14 in all three zones, so all three "tomorrow"s are the 15th.
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-04-14T12:00:00-04:00"));
+    vi.setSystemTime(new Date("2026-04-14T10:00:00Z"));
 
     const ny = resolveDateTimeInput("tomorrow at midnight", "America/New_York");
     const london = resolveDateTimeInput("tomorrow at midnight", "Europe/London");

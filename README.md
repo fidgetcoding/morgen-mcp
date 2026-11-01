@@ -289,7 +289,7 @@ That is the whole setup. No token refresh cycles, no IndexedDB spelunking.
 | Variable | Required | Description |
 |---|---|---|
 | `MORGEN_API_KEY` | Yes | Your Morgen API key from [platform.morgen.so/developers-api](https://platform.morgen.so/developers-api) |
-| `MORGEN_TIMEZONE` | No | IANA timezone for calendar operations (default: `America/New_York`). Used for formatting event times and task due dates. |
+| `MORGEN_TIMEZONE` | No | IANA timezone for calendar operations and natural-language dates like "tomorrow at 9am" (default: your system timezone). Used for formatting event times and task due dates. |
 | `MORGEN_SELF_EMAIL` | No | Your own email address — used by `rsvp_event` to key your RSVP into the participants map. Only needed if it can't be inferred from the calendar name (most Google calendars are named after the account email). |
 | `MORGEN_ACCOUNT_ROUTES` | No | JSON array of smart-routing rules for `create_event`. Unset means routing is off and events go to your default writable calendar. See [Smart account routing](#smart-account-routing). |
 

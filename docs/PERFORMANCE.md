@@ -81,5 +81,4 @@ All handler call sites pass `points` explicitly to `morgenFetch`.
 - Optionally cache `list_events` / `list_tasks` responses for 30 seconds to survive bursty AI workflows.
 - Pin cache TTL to an env var (e.g. `MORGEN_CACHE_TTL_MS`) for per-deployment tuning of the 10-minute default.
 - **Parallelize `resolveTagLabelsToIds` tag-create calls** via `Promise.all` — currently serial, so 10 new tags = 10 sequential round-trips (~30s real-time latency). The 1-pt-per-call cost is unchanged, but wall-clock time improves dramatically.
-- **Align `tools-tasks.js` TZ default** with events — currently passes `args.timezone` to the NL parser, which falls back to hardcoded `"America/New_York"` instead of `DEFAULT_TIMEZONE` / `MORGEN_TIMEZONE` env. Fine on Nate's EST setup, wrong for other timezones.
 - **Atomic server-side reflow** — waiting on Morgen to expose `POST /v3/calendars/reflow` per the 2026-04-14 feature request email. Would replace the sequential client-side loop and eliminate partial-failure state entirely.

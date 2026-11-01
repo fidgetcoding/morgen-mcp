@@ -6,6 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versio
 
 > **Note on package name:** This package was originally published as `morgen-mcp` on npm. Renamed to `fidgetcoding-morgen-mcp` on 2026-04-18 under the FidgetCoding brand umbrella. The old `morgen-mcp` package is deprecated with a redirect message. The GitHub owner account has since been renamed — the canonical URL today is `github.com/fidgetcoding/morgen-mcp` (old `lorecraft-io/morgen-mcp` URLs 301-redirect).
 
+## [Unreleased]
+
+### Fixed
+- **Natural-language dates came back a day off when the machine and the target timezone were on different calendar days.** chrono decides what "today" means from the system clock, and the parser then stamped the target zone's offset on that date. At 03:00 on the 16th in Dubai, "9am" in America/New_York (still the evening of the 15th there) resolved to the 16th. chrono now gets the target zone's offset as its reference, so "today", "tomorrow", weekdays and bare times are read on the target zone's calendar. Applies to `resolveDateTimeInput`, `resolveDateInput` and `resolveTimeInput`.
+- **Tasks ignored your timezone.** `create_task`, `update_task` and `event_to_task` fell through to a hardcoded `America/New_York` when no `timezone` was passed, while events used `MORGEN_TIMEZONE` or the system zone. The parser now defaults to the same order everywhere. The resolver lives in one place instead of three copies. The README's stated default is corrected too.
+- Two parser tests pinned a clock where Tokyo was already on the 15th and still expected "tomorrow" to be the 15th, which only passed because of the bug. They now pin an instant where all three zones share a date.
+
+### Security
+- `@modelcontextprotocol/sdk` 1.30.0 to 1.32.2, plus a lockfile refresh of transitive dependencies. Clears the critical and high production advisories (`proxy-addr`, `body-parser`, `fast-uri`, `hono`, `zod`, the SDK's own).
+
+### Changed
+- CI runs the suite under five timezones (America/New_York, Asia/Dubai, Asia/Tokyo, America/Los_Angeles, Pacific/Auckland).
+
 ## [0.3.0] - 2026-08-17
 
 ### Changed

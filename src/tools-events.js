@@ -35,7 +35,7 @@ import {
   SERIES_UPDATE_MODES,
   RSVP_RESPONSES,
 } from "./tools-events-schema.js";
-import { resolveDateTimeInput } from "./nl-date-parser.js";
+import { resolveDateTimeInput, resolveDefaultTimezone } from "./nl-date-parser.js";
 import { parseRecurrenceString } from "./nl-recurrence.js";
 
 // Morgen's participationStatus uses past-tense forms; the MCP's user-facing
@@ -53,20 +53,6 @@ const MAX_DESCRIPTION_LEN = 5000;
 const MAX_LOCATION_LEN = 500;
 const MAX_ID_LEN = 500;
 
-// Timezone resolution order:
-//   1. MORGEN_TIMEZONE env var (explicit override)
-//   2. Node's Intl-reported system timezone (picks up the user's OS setting)
-//   3. America/New_York (last-resort fallback)
-function resolveDefaultTimezone() {
-  if (process.env.MORGEN_TIMEZONE) return process.env.MORGEN_TIMEZONE;
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz && typeof tz === "string") return tz;
-  } catch {
-    // fall through
-  }
-  return "America/New_York";
-}
 const DEFAULT_TIMEZONE = resolveDefaultTimezone();
 
 function validateString(value, field, maxLen) {

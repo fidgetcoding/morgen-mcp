@@ -21,7 +21,7 @@ import {
   resolveSelfEmail,
 } from "./calendar-cache.js";
 import { mapEvent, unwrapEvents } from "./events-shape.js";
-import { resolveDateInput, resolveTimeInput } from "./nl-date-parser.js";
+import { resolveDateInput, resolveDefaultTimezone, resolveTimeInput } from "./nl-date-parser.js";
 
 // Hard cap on explicit event_ids per reflow_day call. Each mutation costs 1
 // point against Morgen's 100-point / 15-minute budget, and the auto-fetch
@@ -36,17 +36,6 @@ const LOCAL_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
 // ISO 8601 duration — subset Morgen uses. PT30M, PT1H30M, P1D, etc.
 const DURATION_RE =
   /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/;
-
-function resolveDefaultTimezone() {
-  if (process.env.MORGEN_TIMEZONE) return process.env.MORGEN_TIMEZONE;
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz && typeof tz === "string") return tz;
-  } catch {
-    // fall through
-  }
-  return "America/New_York";
-}
 
 function todayInTimezone(tz) {
   return new Date().toLocaleDateString("en-CA", { timeZone: tz });
@@ -207,7 +196,7 @@ export async function handleReflowDay(args = {}) {
   // the HH:MM/HH:MM:SS fast path identical to the old regex behavior and
   // only falls through to chrono for casual phrases like "1pm".
   const normalizedAnchor = args.anchor_time !== undefined
-    ? resolveTimeInput(args.anchor_time)
+    ? resolveTimeInput(args.anchor_time, timeZone)
     : args.anchor_time;
   const anchorTime = validateAnchorTime(normalizedAnchor);
   let date;

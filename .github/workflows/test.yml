@@ -50,3 +50,15 @@ jobs:
         run: npm test
         env:
           MORGEN_API_KEY: test-key-placeholder
+
+      # Natural-language dates depend on the host clock's calendar day, so a
+      # suite that only runs in the runner's UTC cannot catch a day-off bug.
+      - name: Run tests across timezones
+        run: |
+          for tz in America/New_York Asia/Dubai Asia/Tokyo America/Los_Angeles Pacific/Auckland; do
+            echo "::group::TZ=$tz"
+            TZ="$tz" npm test
+            echo "::endgroup::"
+          done
+        env:
+          MORGEN_API_KEY: test-key-placeholder

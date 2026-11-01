@@ -15,7 +15,7 @@ import { morgenFetch } from "./client.js";
 import { validateId, validateIntegerRange, validateStringArray } from "./validation.js";
 import { getCalendarCache, resolveCalendarMeta } from "./calendar-cache.js";
 import { unwrapEvents } from "./events-shape.js";
-import { resolveDateInput } from "./nl-date-parser.js";
+import { resolveDateInput, resolveDefaultTimezone } from "./nl-date-parser.js";
 import { parseIsoDurationSeconds, addSecondsToLocal, validateReflowDate } from "./tools-reflow.js";
 
 const LOCAL_DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/;
@@ -27,17 +27,6 @@ export const DEFAULT_MIN_MINUTES = 30;
 // A week of weekdays is the useful default span; beyond a month the response
 // stops being something a model can reason over in one pass.
 const MAX_RANGE_DAYS = 31;
-
-function resolveDefaultTimezone() {
-  if (process.env.MORGEN_TIMEZONE) return process.env.MORGEN_TIMEZONE;
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (tz && typeof tz === "string") return tz;
-  } catch {
-    // fall through
-  }
-  return "America/New_York";
-}
 
 function todayInTimezone(tz) {
   return new Date().toLocaleDateString("en-CA", { timeZone: tz });
